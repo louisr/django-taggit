@@ -5,11 +5,11 @@ from django.db import models, IntegrityError, transaction
 from django.template.defaultfilters import slugify as default_slugify
 from django.utils.translation import ugettext_lazy as _, ugettext
 
-
 class TagBase(models.Model):
     name = models.CharField(verbose_name=_('Name'), max_length=100)
     slug = models.SlugField(verbose_name=_('Slug'), unique=True, max_length=100)
-
+    hits = models.IntegerField(default=0)
+    
     def __unicode__(self):
         return self.name
 
@@ -18,6 +18,7 @@ class TagBase(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.pk and not self.slug:
+            self.name = self.name.strip()
             self.slug = self.slugify(self.name)
             if django.VERSION >= (1, 2):
                 from django.db import router
@@ -55,7 +56,7 @@ class Tag(TagBase):
     class Meta:
         verbose_name = _("Tag")
         verbose_name_plural = _("Tags")
-
+        ordering = ('-hits',)
 
 
 class ItemBase(models.Model):
